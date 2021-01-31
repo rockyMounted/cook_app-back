@@ -18,21 +18,22 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+
 router.get('/', (req, res, next) => {
   const recipes = db.get('recipes')
   res.json({ status: 'OK', data: recipes });
 });
 
 router.get("/:id", (req, res, next) => {
+  const recipes = db.get('recipes')
   const { id } = req.params;
   const data = recipes.find((recipe) => String(recipe.id) === id);
 
   res.json({ status: "OK", data });
 });
 
-router.post('/', upload.single('image'), (req, res, next) => {
-  const { body, file } = req;
-  // console.log(file)
+router.post('/',(req, res, next) => {
+  const { body } = req;
   const recipeSchema = {
     type: 'object',
     properties: {
@@ -40,10 +41,10 @@ router.post('/', upload.single('image'), (req, res, next) => {
         type: 'string'
       },
       ingredients: {
-        type: 'array'  //!
+        type: 'array'
       },
       time: {
-        type: 'string' //!
+        type: 'string'
       },
       difficulty: {
         type: 'string'
@@ -52,23 +53,31 @@ router.post('/', upload.single('image'), (req, res, next) => {
         type: 'string'
       },
       calories: {
-        type: 'string' //!
+        type: 'string'
       },
       img: {
         type: 'string'
       },
     },
-    required: ['calories', 'img'], //!
+    required: ['calories'],
     additionalProperties: false
   };
 
-  const validationResult = validate({...body, img: file.originalname}, recipeSchema);
+  const validationResult = validate(req.body, recipeSchema);
   if (!validationResult.valid) {
-    // console.log(validationResult.errors)
     return next(new Error('INVALID_JSON_OR_API_FORMAT'));
   }
 
-  const newRecipe = { id: shortid.generate(), title: body.title, ingredients: body.ingredients , time: body.time, difficulty: body.difficulty, description: body.description, calories: body.calories, img: `http://localhost:8080/img/${file.filename}` };
+  const newRecipe = {
+    id: shortid.generate(),
+    title: body.title,
+    ingredients: body.ingredients,
+    time: body.time,
+    difficulty: body.difficulty,
+    description: body.description,
+    calories: body.calories,
+    img: body.img
+  };
   try {
     db.get('recipes')
       .push(newRecipe)
@@ -80,12 +89,27 @@ router.post('/', upload.single('image'), (req, res, next) => {
   res.json({ status: 'OK', data: newRecipe})
 })
 
+router.post('/img', upload.single('image'), function (req, res, next) {
+  const { file} = req;
+  const image = {
+    img: `http://localhost:8080/img/${file.filename}`
+  }
+  res.json({ status: 'OK', data: image })
+})
+
 router.put("/:id", (req, res, next) => {
   const { id } = req.params;
   const { body } = req;
   const recipe = db.get('recipes').find((task) => String(task.id) === id)
-                    .assign({title: body.title, time: body.time, difficulty: body.difficulty, description: body.description, calories: body.calories, img: body.img  })
-                    .write()
+    .assign({
+      title: body.title,
+      time: body.time,
+      difficulty: body.difficulty,
+      description: body.description,
+      calories: body.calories,
+      img: body.img
+    })
+    .write()
 
   res.json({ recipe });
 })
