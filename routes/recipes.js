@@ -18,7 +18,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-
 router.get('/', (req, res, next) => {
   const recipes = db.get('recipes')
   res.json({ status: 'OK', data: recipes });
@@ -59,7 +58,7 @@ router.post('/',(req, res, next) => {
         type: 'string'
       },
     },
-    required: ['calories'],
+    required: ['title', 'calories', 'description', 'ingredients'],
     additionalProperties: false
   };
 

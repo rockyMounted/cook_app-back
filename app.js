@@ -1,15 +1,11 @@
 const express = require('express');
-// const morgan = require('morgan');
 const bodyParser = require("body-parser");
 const tasksRoutes = require('./routes/recipes');
 const path = require('path');
 
 const app = express();
 
-// app.use(morgan('combined'));
 app.use(bodyParser.json());
-
-
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
